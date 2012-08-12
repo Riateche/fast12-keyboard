@@ -1,31 +1,20 @@
 package riateche;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import riateche.KeyboardLayoutItem.Command;
-import riateche.keyboard.R;
+//import riateche.keyboard.R;
 import android.content.Context;
-import android.content.res.XmlResourceParser;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Paint.Align;
-import android.graphics.Typeface;
-import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -50,34 +39,29 @@ public class KeyboardView extends View {
   private int paddingLeft = 0, paddingTop = 0;
   
   private boolean capsEnabled = false;
-  //private boolean shiftPressSuggested = false;
-  //private int shiftPressSuggestedTime = 0;
   private boolean shiftPressed = false;
   
   private boolean hasShiftCandidate = false;
   private int shiftCandidateX, shiftCandidateY;
 
-  //int dpi = DisplayMetrics.DENSITY_DEFAULT;
-  //float scalingFactor = 1;
   DisplayMetrics displayMetrics = new DisplayMetrics();
   
-  private Timer timer = new Timer(false);
+  //private Timer timer = new Timer(false);
   
   
   private boolean hasCandidateButton = false;
   private int candidateButtonX, candidateButtonY;
 
-  private ArrayList<KeyboardLayout> layouts = new ArrayList<KeyboardLayout>();
-  KeyboardLayout currentLayout;
+ 
+  
 
   private GestureDetector gd;
-  //private final Point mStartPosition = new Point();
   
   private KeyboardLayoutItem getItemForCandidate(int buttonX, int buttonY) {
     if (!hasCurrentButton) return null;
     int posInButtonX = buttonX - currentButtonX + 1;
     int posInButtonY = buttonY - currentButtonY + 1;
-    return currentLayout.getItemForButton(currentButtonX, currentButtonY, posInButtonX, posInButtonY);
+    return service.getCurrentLayout().getItemForButton(currentButtonX, currentButtonY, posInButtonX, posInButtonY);
   }
 
 
@@ -87,82 +71,12 @@ public class KeyboardView extends View {
     return new Rect(left, top, left + buttonSize, top + buttonSize);   
   }
 
-  private Map<String,String>  getAttributes(XmlPullParser parser) {
-    Map<String,String> attrs=null;
-    int acount=parser.getAttributeCount();
-    if(acount != -1) {
-      //Log.d(MY_DEBUG_TAG,"Attributes for ["+parser.getName()+"]");
-      attrs = new HashMap<String,String>(acount);
-      for(int x=0;x<acount;x++) {
-        //Log.d(MY_DEBUG_TAG,"\t["+parser.getAttributeName(x)+"]=" +
-        //       "["+parser.getAttributeValue(x)+"]");
-        attrs.put(parser.getAttributeName(x), parser.getAttributeValue(x));
-      }
-    }
-    return attrs;
-  }
+  
 
   public KeyboardView(Service service) {
     super(service);
     this.service = service;
-    try {
-      XmlResourceParser parser = getResources().getXml(R.xml.keyboard_layouts);
-      int eventType = parser.getEventType();
-      KeyboardLayout layout = null;
-      boolean inKey = false;
-      while (eventType != XmlPullParser.END_DOCUMENT) {
-        //System.out.println("loop" + eventType);
-        //if(eventType == XmlPullParser.START_DOCUMENT) {
-        //    System.out.println("Start document");
-        //} else 
-        if (eventType == XmlPullParser.START_TAG) {
-          if (parser.getName().equals("layout")) {
-            Map<String,String> attrs = getAttributes(parser);
-            if (!attrs.containsKey("width") || !attrs.containsKey("height")) {
-              Log.e("KeyboardView", "Layout attributes missing");
-              throw new InvalidLayoutXmlException("Layout attributes missing");
-            }
-            layout = new KeyboardLayout(Integer.parseInt(attrs.get("width")), 
-                Integer.parseInt(attrs.get("height")));
-          } else if (parser.getName().equals("key")) {
-            Map<String,String> attrs = getAttributes(parser);
-            if (attrs.containsKey("command")) {
-              layout.pushItem(new KeyboardLayoutItem(KeyboardLayoutItem.Command.valueOf(attrs.get("command"))));
-            }
-            inKey = true;
-          }
-
-          // System.out.println("Start tag "+parser.getName());
-        } else if(eventType == XmlPullParser.END_TAG) {
-          if (parser.getName().equals("layout")) {
-            layouts.add(layout);
-            layout = null;
-          } else if (parser.getName().equals("key")) {
-            inKey = false;
-          }    
-          //System.out.println("End tag "+parser.getName());
-        } else if(eventType == XmlPullParser.TEXT) {
-          //System.out.println("Text "+parser.getText());
-          if (inKey) {
-            if (layout == null) {
-              throw new InvalidLayoutXmlException("Unexpected 'key' tag");                            
-            }
-            layout.pushItem(new KeyboardLayoutItem(parser.getText()));
-          }
-        }
-        eventType = parser.next();
-      }
-      if (layouts.isEmpty()) {
-        throw new InvalidLayoutXmlException("No layouts found");                            
-      }
-      currentLayout = layouts.get(0);
-    } catch (IOException e) {
-      Log.e("KeyboardView", "Failed to parse XML: " + e);
-    } catch (XmlPullParserException e) {
-      Log.e("KeyboardView", "Failed to parse XML: " + e);
-    } catch (InvalidLayoutXmlException e) {
-      Log.e("KeyboardView", "Failed to parse XML: " + e);     
-    }       
+    
     
     WindowManager wm = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
     
@@ -333,11 +247,7 @@ public class KeyboardView extends View {
         if (candidate) {
           paintText.setTextSize(buttonSize / 2);
           KeyboardLayoutItem item = getItemForCandidate(i, j);
-          boolean capitalization = capsEnabled;
-          if (currentShiftCandidate) {
-            capitalization = !capitalization;
-          }
-          canvas.drawText(item.keyLabel(capitalization), 
+          canvas.drawText(item.keyLabel(capsEnabled, currentShiftCandidate), 
               rect.left + buttonSize / 2,  
               rect.top + buttonSize * 3 / 4, 
               paintText);                       
@@ -355,7 +265,7 @@ public class KeyboardView extends View {
           Log.i("KeyboardView", "descent=" + paintText.descent()); */
           for(int ti = 0; ti < 3; ti++) {  
             for(int tj = 0; tj < 3; tj++) {
-              KeyboardLayoutItem item = currentLayout.getItemForButton(i,  j, ti, tj);
+              KeyboardLayoutItem item = service.getCurrentLayout().getItemForButton(i,  j, ti, tj);
               if (item != null) {
                 if (ti == 1 && tj == 1) {
                   paintText.setARGB(255, 0, 0, 200);
@@ -364,7 +274,7 @@ public class KeyboardView extends View {
                 } else {
                   paintText.setARGB(255, 200, 200, 200);                  
                 }
-                canvas.drawText(item.keyLabel(capsEnabled), 
+                canvas.drawText(item.keyLabel(capsEnabled, false), 
                     rect.left + (ti + 1) * buttonSize / 4, 
                     rect.top + (tj + 1) * (textPaddingY + textSize) - paintText.descent(), 
                     paintText);                       
@@ -419,36 +329,16 @@ public class KeyboardView extends View {
         item = getItemForCandidate(shiftCandidateX, shiftCandidateY);        
       } else {
         if (System.nanoTime() - gestureStartTime < singleGestureMaxTime * 1e6) {
-          item = currentLayout.getItemForButton(currentButtonX, currentButtonY, 1, 1);          
+          item = service.getCurrentLayout().getItemForButton(currentButtonX, currentButtonY, 1, 1);          
         }
       }      
       if (item != null) {
-        switch (item.getCommand()) {
-        case LETTER:
-          boolean capitalization = capsEnabled;
-          if (shiftPressed) {
-            capitalization = !capitalization;
-          }
-          service.typeLetter(item.getLetter(capitalization));           
-          break;
-        case SPACE:
-          service.typeLetter(" ");           
-          break;
-        case ENTER:
-          service.typeLetter("\n");           
-          break;
-        case CAPS_LOCK:
+        if (item.getCommand() == Command.CAPS_LOCK) {
           capsEnabled = !capsEnabled;
-          invalidate();
-          break;
-        case BACKSPACE:
-          service.sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
-          break;
-        case HIDE_KEYBOARD:
-          service.requestHideSelf(0);
-          break;
+        } else {
+          service.executeCommand(item, capsEnabled, shiftPressed);
         }
-      }
+      }             
       hasCurrentButton = false;
       hasCandidateButton = false;
       shiftPressed = false;
@@ -458,5 +348,5 @@ public class KeyboardView extends View {
     }
     return r;
   }
-
+    
 }

@@ -32,12 +32,18 @@ public class KeyboardLayoutItem {
     }
   }
   
-  public String keyLabel(boolean capsEnabled) {
+  public String keyLabel(boolean capsEnabled, boolean shiftPressed) {
     switch (command) {
     case LETTER:
-      return getLetter(capsEnabled);
+      boolean upperCase = capsEnabled;
+      if (shiftPressed) upperCase = !upperCase;
+      return getLetter(upperCase);
     case BACKSPACE:
-      return "←";
+      if (shiftPressed) {
+        return "CL";      
+      } else {
+        return "←";
+      }
     case SPACE:
       return "□";
     case ENTER:
@@ -59,8 +65,8 @@ public class KeyboardLayoutItem {
     return command;
   }
 
-  public String getLetter(boolean capsEnabled) {
-    return capsEnabled? letter: letter.toLowerCase();
+  public String getLetter(boolean upperCase) {
+    return upperCase? letter: letter.toLowerCase();
   }
 
 }
