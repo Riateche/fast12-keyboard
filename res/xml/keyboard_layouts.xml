@@ -46,7 +46,7 @@
             <key>;</key>
             <key>6</key>
             <key>?</key>
-            <key>?</key>
+            <key command="ENTER"></key>
             <key command="SPACE"></key>
         </row>        
         <row>
@@ -63,7 +63,7 @@
             <key command="HIDE_KEYBOARD"></key>  
         </row>        
         <row>
-            <key>`</key>
+            <key command="CAPS_LOCK"></key>
             <key>~</key>
             <key>?</key>
             <key>%</key>

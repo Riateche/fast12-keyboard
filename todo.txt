@@ -2,7 +2,6 @@ Ri Keyboard
 ===========
 
 Todo:
-* Different color for central symbols
 * Layout switching
 * Complete english, russian, symbol layouts
 * Shift ability

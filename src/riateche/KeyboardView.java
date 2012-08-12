@@ -19,8 +19,10 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Paint.Align;
 import android.graphics.Typeface;
+import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -43,7 +45,13 @@ public class KeyboardView extends View  {
 
   private int buttonSize = 36;
   private int paddingLeft = 0, paddingTop = 0;
+  
+  private boolean capsEnabled = false;
 
+  //int dpi = DisplayMetrics.DENSITY_DEFAULT;
+  //float scalingFactor = 1;
+  DisplayMetrics displayMetrics = new DisplayMetrics();
+  
   
   private boolean hasCandidateButton = false;
   private int candidateButtonX, candidateButtonY;
@@ -146,18 +154,14 @@ public class KeyboardView extends View  {
     }       
     
     WindowManager wm = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
-    int dpi;
+    
     if (wm != null) {
-      DisplayMetrics metrics = new DisplayMetrics();
-      wm.getDefaultDisplay().getMetrics(metrics);
-      dpi = metrics.densityDpi;
-      Log.e("KeyboardView", "dpi: " + dpi);
+      wm.getDefaultDisplay().getMetrics(displayMetrics);
     } else {
       Log.e("KeyboardView", "Failed to get window manager");
-      dpi = DisplayMetrics.DENSITY_DEFAULT;
     }
     
-    preferredButtonSize = (int) (dpi * 0.4);
+    preferredButtonSize = (int) (displayMetrics.densityDpi * 0.4);
     buttonSize = preferredButtonSize;
     
 
@@ -269,20 +273,36 @@ public class KeyboardView extends View  {
         if (candidate) {
           paintText.setTextSize(buttonSize / 2);
           KeyboardLayoutItem item = getItemForCandidate(i, j);
-          canvas.drawText(item.keyLabel(), 
-              rect.left + buttonSize / 2, 
+          canvas.drawText(item.keyLabel(capsEnabled), 
+              rect.left + buttonSize / 2,  
               rect.top + buttonSize * 3 / 4, 
               paintText);                       
           
         } else {
-          paintText.setTextSize(buttonSize / 4);
-          for(int ti = 0; ti < 3; ti++) {
+          int textSize = buttonSize / 4;
+          paintText.setTextSize(textSize);
+          int textPaddingY = (int) (( buttonSize - 3 * textSize ) / 4);
+          /*Log.i("KeyboardView", "=======");
+          Log.i("KeyboardView", "textSize=" + textSize  + " real=" + paint.getTextSize());
+          Log.i("KeyboardView", "dpi=" + displayMetrics.densityDpi);
+          Log.i("KeyboardView", "density=" + displayMetrics.density);
+          Log.i("KeyboardView", "textPaddingY=" + textPaddingY);
+          Log.i("KeyboardView", "buttonSize=" + buttonSize);
+          Log.i("KeyboardView", "descent=" + paintText.descent()); */
+          for(int ti = 0; ti < 3; ti++) {  
             for(int tj = 0; tj < 3; tj++) {
               KeyboardLayoutItem item = currentLayout.getItemForButton(i,  j, ti, tj);
               if (item != null) {
-                canvas.drawText(item.keyLabel(), 
+                if (ti == 1 && tj == 1) {
+                  paintText.setARGB(255, 0, 0, 200);
+                } else if (item.getCommand() != Command.LETTER) {
+                  paintText.setARGB(255, 200, 0, 0);                  
+                } else {
+                  paintText.setARGB(255, 200, 200, 200);                  
+                }
+                canvas.drawText(item.keyLabel(capsEnabled), 
                     rect.left + (ti + 1) * buttonSize / 4, 
-                    rect.top  - 2 + td * (tj + 1), 
+                    rect.top + (tj + 1) * (textPaddingY + textSize) - paintText.descent(), 
                     paintText);                       
               }
             }
@@ -351,7 +371,17 @@ public class KeyboardView extends View  {
       if (item != null) {
         switch (item.getCommand()) {
         case LETTER:
-          service.typeLetter(item.getLetter());           
+          service.typeLetter(item.getLetter(capsEnabled));           
+          break;
+        case SPACE:
+          service.typeLetter(" ");           
+          break;
+        case ENTER:
+          service.typeLetter("\n");           
+          break;
+        case CAPS_LOCK:
+          capsEnabled = !capsEnabled;
+          invalidate();
           break;
         case BACKSPACE:
           service.sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
