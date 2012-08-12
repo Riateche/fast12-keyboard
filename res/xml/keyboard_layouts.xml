@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layouts>
+    <layout name="latin" width="4" height="3">
+        <row> 
+            <key>1</key>
+            <key>(</key>
+            <key>)</key>
+	          <key>2</key>
+	          <key>-</key>
+	          <key>@</key>
+            <key>3</key>
+            <key>?</key>
+            <key command="BACKSPACE"></key>
+            <key>+</key>
+          </row>        
+        <row>
+            <key>Q</key>
+            <key>W</key>
+            <key>E</key>
+            <key>R</key>
+            <key>T</key>
+            <key>Y</key>
+            <key>U</key>
+            <key>I</key>
+            <key>O</key>
+            <key>P</key>
+        </row>        
+        <row>
+            <key>A</key>
+            <key>S</key>
+            <key>D</key>
+            <key>F</key>
+            <key>G</key>
+            <key>H</key>
+            <key>J</key>
+            <key>K</key>
+            <key>L</key>
+            <key>?</key>
+        </row>        
+        <row>
+            <key>4</key>
+            <key>'</key>
+            <key>"</key>
+            <key>5</key>
+            <key>:</key>
+            <key>;</key>
+            <key>6</key>
+            <key>?</key>
+            <key>?</key>
+            <key command="SPACE"></key>
+        </row>        
+        <row>
+        
+            <key>Z</key>
+            <key>X</key>
+            <key>C</key>
+            <key>V</key>
+            <key>B</key>
+            <key>N</key>
+            <key>M</key>
+            <key>,</key>
+            <key>.</key>
+            <key command="HIDE_KEYBOARD"></key>  
+        </row>        
+        <row>
+            <key>`</key>
+            <key>~</key>
+            <key>?</key>
+            <key>%</key>
+            <key>^</key>
+            <key>[</key>
+            <key>]</key>
+            <key>{</key>
+            <key>}</key>
+            <key>_</key>
+        </row>        
+        <row>
+            <key>7</key>
+            <key>#</key>
+            <key>$</key>
+            <key>8</key>
+            <key>*</key>
+            <key>?</key>
+            <key>9</key>
+            <key>?</key>
+            <key>?</key>
+            <key>0</key>
+        </row>        
+    </layout>
+</layouts>

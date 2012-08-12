@@ -1,0 +1,15 @@
+Ri Keyboard
+===========
+
+Todo:
+* Different color for central symbols
+* Layout switching
+* Complete english, russian, symbol layouts
+* Shift ability
+* Key repeating when user holds a button 
+* Space, Enter buttons
+* "Next" butoon (?)
+* Different color for special symbols when editing email, uri
+* Declare locales (http://developer.android.com/guide/topics/text/creating-input-method.html)
+* Switch to requested locale (check in Opera Mini)
+* Settings
