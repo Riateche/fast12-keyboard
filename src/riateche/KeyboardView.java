@@ -2,8 +2,11 @@ package riateche;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -29,7 +32,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-public class KeyboardView extends View  {
+public class KeyboardView extends View {
   private static final int singleGestureMaxTime = 200; //milliseconds
   private final Service service;
   private int preferredButtonSize;
@@ -47,10 +50,18 @@ public class KeyboardView extends View  {
   private int paddingLeft = 0, paddingTop = 0;
   
   private boolean capsEnabled = false;
+  //private boolean shiftPressSuggested = false;
+  //private int shiftPressSuggestedTime = 0;
+  private boolean shiftPressed = false;
+  
+  private boolean hasShiftCandidate = false;
+  private int shiftCandidateX, shiftCandidateY;
 
   //int dpi = DisplayMetrics.DENSITY_DEFAULT;
   //float scalingFactor = 1;
   DisplayMetrics displayMetrics = new DisplayMetrics();
+  
+  private Timer timer = new Timer(false);
   
   
   private boolean hasCandidateButton = false;
@@ -168,7 +179,23 @@ public class KeyboardView extends View  {
     paintBackground.setARGB(255, 255, 255, 255);
     paintBackground.setStyle(Style.FILL); 
     paintText.setTextAlign(Align.CENTER);
-    Typeface typeface = Typeface.createFromAsset(service.getAssets(), "font2.ttf"); 
+    
+    /*
+    timer.schedule(new TimerTask() {
+      
+      @Override
+      public void run() {
+        if (shiftPressSuggested) {
+          shiftPressSuggestedTime++;
+          if (shiftPressSuggestedTime > 6) {
+            shiftPressSuggested = false;
+            shiftPressed = true;
+            postInvalidate();
+          }
+        }
+      }
+    },  new Date(), 50);*/
+    //Typeface typeface = Typeface.createFromAsset(service.getAssets(), "font2.ttf"); 
     //paintText.setTypeface(typeface);
     gd = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
       @Override
@@ -195,6 +222,10 @@ public class KeyboardView extends View  {
         return false;
       }
 
+      
+      private boolean isCandidateDiagonal(int buttonX, int buttonY) {
+        return (currentButtonX - buttonX + currentButtonY - buttonY) % 2 == 0;
+      }
 
 
       @Override
@@ -206,9 +237,15 @@ public class KeyboardView extends View  {
           Rect currentButtonDefault = getButtonRect(currentButtonX, currentButtonY);
           double selfDistanse = Math.pow(currentButtonDefault.left - currentButtonPositionX, 2) +
               Math.pow(currentButtonDefault.top - currentButtonPositionY, 2);
-          if (Math.sqrt(selfDistanse) < buttonSize / 4.0) {
+          if (Math.sqrt(selfDistanse) < buttonSize * 0.4) {
             hasCandidateButton = false;
+            shiftPressed = hasShiftCandidate;
+          } else if (Math.sqrt(selfDistanse) > buttonSize * 2) {
+            shiftPressed = false;
+            hasCandidateButton = false;
+            hasShiftCandidate = false;
           } else {
+            shiftPressed = false;
             hasCandidateButton = true;
             for(int i = currentButtonX - 1; i <= currentButtonX + 1; i++) {                     
               for(int j = currentButtonY - 1; j <= currentButtonY + 1; j++) {
@@ -223,11 +260,32 @@ public class KeyboardView extends View  {
                   minDistanse = distanse;
                   candidateButtonX = i;
                   candidateButtonY = j;
-
                 }
 
               }
             }
+            
+            boolean wasDiagonal = hasShiftCandidate && isCandidateDiagonal(shiftCandidateX, shiftCandidateY);
+            boolean newDiagonal = isCandidateDiagonal(candidateButtonX, candidateButtonY);
+            if (!wasDiagonal || newDiagonal) {
+              shiftCandidateX = candidateButtonX;
+              shiftCandidateY = candidateButtonY;
+            }
+            hasShiftCandidate = true;
+
+            
+            
+            /*double shiftSensitivity = (candidateButtonX - currentButtonX + 
+                candidateButtonY - currentButtonY) % 2 == 0? 1.4 : 1;
+            boolean shouldPressShift = Math.sqrt(selfDistanse) > 1.2 * shiftSensitivity * buttonSize;
+            if (shouldPressShift && !shiftPressSuggested && !shiftPressed) {
+              shiftPressSuggested = true;
+              shiftPressSuggestedTime = 0;
+            }
+            if (!shouldPressShift && (shiftPressSuggested || shiftPressed)) {
+              shiftPressed = false;
+              shiftPressSuggested = false;
+            }*/
           }                   
           invalidate();
         }
@@ -242,7 +300,7 @@ public class KeyboardView extends View  {
     canvas.drawPaint(paintBackground);
     for(int i = 0; i < buttonsCount.x; i++) {
       for(int j = 0; j < buttonsCount.y; j++) {
-        boolean candidate = false, currentCandidate = false;
+        boolean candidate = false, currentCandidate = false, currentShiftCandidate = false;
         if (hasCurrentButton) {
           if (i == currentButtonX && j == currentButtonY) {
             continue;
@@ -254,18 +312,20 @@ public class KeyboardView extends View  {
         if (hasCandidateButton) {
           if (candidateButtonX == i && candidateButtonY == j) currentCandidate = true;
         }
+        if (hasShiftCandidate && shiftPressed) {
+          if (shiftCandidateX == i && shiftCandidateY == j) currentShiftCandidate = true;
+        }
         if (currentCandidate) {
+          paint.setARGB(255, 0, 255, 0);            
+        } else if (currentShiftCandidate) {
           paint.setARGB(255, 255, 255, 0);
-        } else if (candidate) {
-          paint.setARGB(255, 0, 150, 0);          
         } else {
           paint.setARGB(255, 0, 0, 0);                    
         }
         Rect rect = getButtonRect(i, j);
-        canvas.drawRect(rect, paint);           
-        int td = buttonSize / 3;
+        canvas.drawRect(rect, paint);        
         
-        if (currentCandidate) {
+        if (currentCandidate || currentShiftCandidate) {
           paintText.setARGB(255, 0, 0, 0);
         } else {
           paintText.setARGB(255, 255, 255, 255);          
@@ -273,7 +333,11 @@ public class KeyboardView extends View  {
         if (candidate) {
           paintText.setTextSize(buttonSize / 2);
           KeyboardLayoutItem item = getItemForCandidate(i, j);
-          canvas.drawText(item.keyLabel(capsEnabled), 
+          boolean capitalization = capsEnabled;
+          if (currentShiftCandidate) {
+            capitalization = !capitalization;
+          }
+          canvas.drawText(item.keyLabel(capitalization), 
               rect.left + buttonSize / 2,  
               rect.top + buttonSize * 3 / 4, 
               paintText);                       
@@ -310,24 +374,12 @@ public class KeyboardView extends View  {
         }
       }
     }
-    /*if (hasCurrentButton) {
-      int left = (int) currentButtonPositionX;
-      int top =  (int) currentButtonPositionY;
-      Rect rect = getButtonRect(currentButtonX, currentButtonY);
-      int d = buttonSize + padding;
-      if (left < rect.left - d) left = rect.left - d;
-      if (left > rect.left + d) left = rect.left + d;
-      if (top < rect.top - d) top = rect.top - d;
-      if (top > rect.top + d) top = rect.top + d;
-      if (left < paddingLeft) left = paddingLeft;
-      int max_left = getButtonRect(buttonsCount.x - 1, 0).left;
-      if (left > max_left) left = max_left;
-      if (top < paddingTop) top = paddingTop;
-      int max_top = getButtonRect(buttonsCount.y - 1, 0).top;
-      if (top > max_top) top = max_top;  
+    if (hasCurrentButton) {
       paint.setARGB(50, 0, 0, 0);
-      canvas.drawRect(left, top, left + buttonSize, top + buttonSize, paint);                          
-    }*/
+      canvas.drawRect(currentButtonPositionX, currentButtonPositionY, 
+          currentButtonPositionX + buttonSize, currentButtonPositionY + buttonSize, 
+          paint);                          
+    }
   }
   
   private int getMaxButtonSize(int maxTotalWidth, int maxTotalHeight) {
@@ -363,6 +415,8 @@ public class KeyboardView extends View  {
       KeyboardLayoutItem item = null;
       if (hasCandidateButton) {
         item = getItemForCandidate(candidateButtonX, candidateButtonY);
+      } else if (shiftPressed) {
+        item = getItemForCandidate(shiftCandidateX, shiftCandidateY);        
       } else {
         if (System.nanoTime() - gestureStartTime < singleGestureMaxTime * 1e6) {
           item = currentLayout.getItemForButton(currentButtonX, currentButtonY, 1, 1);          
@@ -371,7 +425,11 @@ public class KeyboardView extends View  {
       if (item != null) {
         switch (item.getCommand()) {
         case LETTER:
-          service.typeLetter(item.getLetter(capsEnabled));           
+          boolean capitalization = capsEnabled;
+          if (shiftPressed) {
+            capitalization = !capitalization;
+          }
+          service.typeLetter(item.getLetter(capitalization));           
           break;
         case SPACE:
           service.typeLetter(" ");           
@@ -393,6 +451,8 @@ public class KeyboardView extends View  {
       }
       hasCurrentButton = false;
       hasCandidateButton = false;
+      shiftPressed = false;
+      hasShiftCandidate = false;
       invalidate();
       return true;
     }
