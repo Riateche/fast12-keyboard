@@ -5,7 +5,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import riateche.KeyboardLayoutItem.Command;
+import riateche.keyboard.R;
 //import riateche.keyboard.R;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -16,7 +18,6 @@ import android.graphics.Paint.Align;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,9 +25,9 @@ import android.view.WindowManager;
 public class KeyboardView extends View {
   private static final int singleGestureMaxTime = 200; //milliseconds
   private final Service service;
-  private int preferredButtonSize;
+  private int preferredButtonSize, minButtonSize;
   private final int padding = 2;
-  private final Point buttonsCount = new Point(4, 3);
+  private final Point buttonsCount = new Point();
   private final Paint paint = new Paint();    
   private final Paint paintBackground = new Paint();    
   private final Paint paintText = new Paint();  
@@ -76,8 +77,8 @@ public class KeyboardView extends View {
   public KeyboardView(Service service) {
     super(service);
     this.service = service;
-    
-    
+    onLayoutChanged();
+
     WindowManager wm = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
     
     if (wm != null) {
@@ -86,7 +87,8 @@ public class KeyboardView extends View {
       Log.e("KeyboardView", "Failed to get window manager");
     }
     
-    preferredButtonSize = (int) (displayMetrics.densityDpi * 0.4);
+    preferredButtonSize = (int) (displayMetrics.densityDpi * 0.5);
+    minButtonSize = (int) (displayMetrics.densityDpi * 0.35);
     buttonSize = preferredButtonSize;
     
 
@@ -169,7 +171,7 @@ public class KeyboardView extends View {
                 Rect rect = getButtonRect(i, j);
                 double distanse = Math.pow(rect.left - currentButtonPositionX, 2) +
                     Math.pow(rect.top - currentButtonPositionY, 2);
-                Log.i("onScroll", "distance = " + distanse);
+                //Log.i("onScroll", "distance = " + distanse);
                 if (distanse < minDistanse) {
                   minDistanse = distanse;
                   candidateButtonX = i;
@@ -247,7 +249,18 @@ public class KeyboardView extends View {
         if (candidate) {
           paintText.setTextSize(buttonSize / 2);
           KeyboardLayoutItem item = getItemForCandidate(i, j);
-          canvas.drawText(item.keyLabel(capsEnabled, currentShiftCandidate), 
+          String s;
+          if (item.getCommand() == Command.SWITCH_LAYOUT) {
+            int index = item.getLayoutNumber();
+            if (index >= 0 && index < service.getLayouts().size()) {
+              s = service.getLayouts().get(item.getLayoutNumber()).getLabel();
+            } else {
+              s = "";
+            }
+          } else {
+            s = item.keyLabel(capsEnabled, currentShiftCandidate);
+          }
+          canvas.drawText(s, 
               rect.left + buttonSize / 2,  
               rect.top + buttonSize * 3 / 4, 
               paintText);                       
@@ -265,6 +278,7 @@ public class KeyboardView extends View {
           Log.i("KeyboardView", "descent=" + paintText.descent()); */
           for(int ti = 0; ti < 3; ti++) {  
             for(int tj = 0; tj < 3; tj++) {
+              //Log.i("", "" + service.getCurrentLayout());
               KeyboardLayoutItem item = service.getCurrentLayout().getItemForButton(i,  j, ti, tj);
               if (item != null) {
                 if (ti == 1 && tj == 1) {
@@ -296,11 +310,14 @@ public class KeyboardView extends View {
     int maxButtonSizeX = (maxTotalWidth - padding * (buttonsCount.x + 1)) / buttonsCount.x; 
     int maxButtonSizeY = (maxTotalHeight - padding * (buttonsCount.y + 1)) / buttonsCount.y;
     int maxButtonSize = maxButtonSizeX > maxButtonSizeY ? maxButtonSizeY : maxButtonSizeX;
-    return preferredButtonSize > maxButtonSize ? maxButtonSize : preferredButtonSize;    
+    int r = preferredButtonSize > maxButtonSize ? maxButtonSize : preferredButtonSize;    
+    r = minButtonSize > r? minButtonSize: r;
+    return r;    
   }
 
   @Override
   protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
+    Log.i("", "onMeasure");
     int x = MeasureSpec.getSize(widthMeasureSpec);
     int y = MeasureSpec.getSize(heightMeasureSpec);
     int newButtonSize = getMaxButtonSize(x, y / 2);        
@@ -347,6 +364,13 @@ public class KeyboardView extends View {
       return true;
     }
     return r;
+  }
+  
+  public void onLayoutChanged() {
+    buttonsCount.set(service.getCurrentLayout().getWidth(), service.getCurrentLayout().getHeight());
+    Log.i("", "buttonsCount=" + buttonsCount);
+    invalidate();
+    requestLayout();
   }
     
 }

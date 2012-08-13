@@ -1,90 +1,383 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layouts>
-    <layout name="latin" width="4" height="3">
+    <layout name="latin" label="ENG" width="4" height="3">
         <row> 
             <key>1</key>
-            <key>(</key>
-            <key>)</key>
+            <key>A</key>
+            <key>B</key>
 	          <key>2</key>
-	          <key>-</key>
-	          <key>@</key>
+	          <key>C</key>
+	          <key>D</key>
             <key>3</key>
-            <key>?</key>
+            <key>E</key>
             <key command="BACKSPACE"></key>
             <key>+</key>
           </row>        
         <row>
-            <key>Q</key>
-            <key>W</key>
-            <key>E</key>
-            <key>R</key>
-            <key>T</key>
-            <key>Y</key>
-            <key>U</key>
-            <key>I</key>
-            <key>O</key>
-            <key>P</key>
-        </row>        
-        <row>
-            <key>A</key>
-            <key>S</key>
-            <key>D</key>
             <key>F</key>
             <key>G</key>
             <key>H</key>
+            <key>I</key>
             <key>J</key>
             <key>K</key>
             <key>L</key>
-            <key>?</key>
+            <key>M</key>
+            <key command="SETTINGS"></key>
+            <key command="ENTER"></key>
+        </row>        
+        <row>
+            <key>N</key>
+            <key>O</key>
+            <key>P</key>
+            <key>Q</key>
+            <key>R</key>
+            <key>S</key>
+            <key>T</key>
+            <key>U</key>
+            <key>.</key>
+            <key>,</key>            
         </row>        
         <row>
             <key>4</key>
-            <key>'</key>
-            <key>"</key>
+            <key>V</key>
+            <key>W</key>
             <key>5</key>
-            <key>:</key>
-            <key>;</key>
+            <key>X</key>
+            <key>Y</key>
             <key>6</key>
-            <key>?</key>
-            <key command="ENTER"></key>
+            <key>Z</key>
+            <key>:</key>
             <key command="SPACE"></key>
         </row>        
-        <row>
-        
-            <key>Z</key>
-            <key>X</key>
-            <key>C</key>
-            <key>V</key>
-            <key>B</key>
-            <key>N</key>
-            <key>M</key>
-            <key>,</key>
-            <key>.</key>
+        <row>        
+            <key>@</key>
+            <key>/</key>
+            <key>&amp;</key>
+            <key>'</key>
+            <key>~</key>
+            <key>^</key>
+            <key>|</key>
+            <key>?</key>
+            <key>;</key>
             <key command="HIDE_KEYBOARD"></key>  
         </row>        
         <row>
             <key command="CAPS_LOCK"></key>
-            <key>~</key>
+            <key>(</key>
+            <key command="SWITCH_LAYOUT" number="1"></key>
+            <key command="SWITCH_LAYOUT" number="2"></key>
+            <key command="SWITCH_LAYOUT" number="3"></key>
+            <key>-</key>
+            <key>&quot;</key>
+            <key>!</key>
+            <key>*</key>
+            <key>#</key>
+        </row>        
+        <row>
+            <key>7</key>
+            <key>)</key>
+            <key command="SWITCH_LAYOUT" number="0"></key>
+            <key>8</key>
+            <key command="SWITCH_LAYOUT" number="4"></key>
+            <key>%</key>
+            <key>9</key>
+            <key>$</key>
+            <key>_</key>
+            <key>0</key>
+        </row>        
+    </layout>
+    <layout name="russian" label="RUS" width="4" height="3">
+        <row> 
+            <key>1</key>
+            <key>А</key>
+            <key>Б</key>
+            <key>2</key>
+            <key>В</key>
+            <key>Г</key>
+            <key>3</key>
+            <key>Д</key>
+            <key command="BACKSPACE"></key>
+            <key>+</key>
+          </row>        
+        <row>
+            <key>Е</key>
+            <key>Ё</key>
+            <key>Ж</key>
+            <key>З</key>
+            <key>И</key>
+            <key>Й</key>
+            <key>К</key>
+            <key>Л</key>
+            <key command="SETTINGS"></key>
+            <key command="ENTER"></key>
+        </row>        
+        <row>
+            <key>М</key>
+            <key>Н</key>
+            <key>О</key>
+            <key>П</key>
+            <key>Р</key>
+            <key>С</key>
+            <key>Т</key>
+            <key>У</key>
+            <key>.</key>
+            <key>,</key>            
+        </row>        
+        <row>
+            <key>4</key>
+            <key>Ф</key>
+            <key>Ч</key>
+            <key>5</key>
+            <key>Ц</key>
+            <key>Ч</key>
+            <key>6</key>
+            <key>Ш</key>
+            <key>:</key>
+            <key command="SPACE"></key>
+        </row>        
+        <row>        
+            <key>Щ</key>
+            <key>Ъ</key>
+            <key>Ы</key>
+            <key>Ь</key>
+            <key>Э</key>
+            <key>Ю</key>
+            <key>Я</key>
             <key>?</key>
+            <key>;</key>
+            <key command="HIDE_KEYBOARD"></key>  
+        </row>        
+        <row>
+            <key command="CAPS_LOCK"></key>
+            <key>(</key>
+            <key command="SWITCH_LAYOUT" number="1"></key>
+            <key command="SWITCH_LAYOUT" number="2"></key>
+            <key command="SWITCH_LAYOUT" number="3"></key>
+            <key>-</key>
+            <key>&quot;</key>
+            <key>!</key>
+            <key>*</key>
+            <key>#</key>
+        </row>        
+        <row>
+            <key>7</key>
+            <key>)</key>
+            <key command="SWITCH_LAYOUT" number="0"></key>
+            <key>8</key>
+            <key command="SWITCH_LAYOUT" number="4"></key>
+            <key>%</key>
+            <key>9</key>
+            <key>$</key>
+            <key>_</key>
+            <key>0</key>
+        </row>        
+    </layout>
+    <layout name="symbolic" label="SYM" width="4" height="3">
+        <row> 
+            <key>~</key>
+            <key>!</key>
+            <key>@</key>
+            <key>#</key>
+            <key>$</key>
             <key>%</key>
             <key>^</key>
+            <key>&amp;</key>
+            <key command="BACKSPACE"></key>
+            <key>*</key>
+          </row>        
+        <row>
+            <key>(</key>
+            <key>)</key>
+            <key>_</key>
+            <key>+</key>
+            <key>`</key>
+            <key>-</key>
+            <key>=</key>
+            <key>|</key>
+            <key command="SETTINGS"></key>
+            <key command="ENTER"></key>
+        </row>        
+        <row>
             <key>[</key>
             <key>]</key>
             <key>{</key>
             <key>}</key>
-            <key>_</key>
+            <key>/</key>
+            <key>\</key>
+            <key>;</key>
+            <key>:</key>
+            <key>'</key>
+            <key>"</key>            
         </row>        
         <row>
-            <key>7</key>
-            <key>#</key>
-            <key>$</key>
-            <key>8</key>
-            <key>*</key>
+            <key>,</key>
+            <key>.</key>
+            <key>&lt;</key>
+            <key>&gt;</key>
             <key>?</key>
-            <key>9</key>
-            <key>?</key>
-            <key>?</key>
-            <key>0</key>
+            <key>№</key>
+            <key>—</key>
+            <key>«</key>
+            <key>»</key>
+            <key command="SPACE"></key>
         </row>        
+        <row>        
+            <key>„</key>
+            <key>“</key>
+            <key>¢</key>
+            <key>£</key>
+            <key>¤</key>
+            <key>¥</key>
+            <key>€</key>
+            <key>§</key>
+            <key>©</key>
+            <key command="HIDE_KEYBOARD"></key>  
+        </row>        
+        <row>
+            <key command="CAPS_LOCK"></key>
+            <key>®</key>
+            <key command="SWITCH_LAYOUT" number="1"></key>
+            <key command="SWITCH_LAYOUT" number="2"></key>
+            <key command="SWITCH_LAYOUT" number="3"></key>
+            <key>–</key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+        </row>        
+        <row>
+            <key></key>
+            <key></key>
+            <key command="SWITCH_LAYOUT" number="0"></key>
+            <key></key>
+            <key command="SWITCH_LAYOUT" number="4"></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+        </row>        
+    </layout>
+<layout name="hiragana" label="JAP" width="4" height="4">
+        <row> 
+            <key>1</key>
+            <key>あ</key>
+            <key>い</key>
+            <key>2</key>
+            <key>う</key>
+            <key>え</key>
+            <key>3</key>
+            <key>お</key>
+            <key command="BACKSPACE"></key>
+            <key>+</key>
+        </row>        
+        <row>
+            <key>は</key>
+            <key>ひ</key>
+            <key>ふ</key>
+            <key>へ</key>
+            <key>ほ</key>
+            <key>か</key>
+            <key>き</key>
+            <key>く</key>
+            <key command="SETTINGS"></key>
+            <key command="ENTER"></key>
+        </row>        
+        <row>
+            <key>け</key>
+            <key>こ</key>
+            <key>ま</key>
+            <key>み</key>
+            <key>む</key>
+            <key>め</key>
+            <key>も</key>
+            <key>さ</key>
+            <key>.</key>
+            <key>,</key>            
+        </row>        
+        <row>
+            <key>4</key>
+            <key>し</key>
+            <key>す</key>
+            <key>5</key>
+            <key>せ</key>
+            <key>そ</key>
+            <key>6</key>
+            <key>や</key>
+            <key></key>
+            <key command="SPACE"></key>
+        </row>        
+        <row>        
+            <key>ゆ</key>
+            <key>よ</key>
+            <key>た</key>
+            <key>ち</key>
+            <key>つ</key>
+            <key>て</key>
+            <key>と</key>
+            <key></key>
+            <key></key>
+            <key command="HIDE_KEYBOARD"></key>  
+        </row>        
+        <row>
+            <key>ら</key>
+            <key>り</key>
+            <key>る</key>
+            <key>れ</key>
+            <key>ろ</key>
+            <key>な</key>
+            <key>に</key>
+            <key>ぬ</key>
+            <key></key>
+            <key></key>
+        </row>      
+        <row>
+            <key>7</key>
+            <key>ね</key>
+            <key>の</key>
+            <key>8</key>
+            <key>わ</key>
+            <key>ゐ</key>
+            <key>9</key>
+            <key>ん</key>
+            <key></key>
+            <key>0</key>
+        </row>      
+        <row>
+            <key>ゑ</key>
+            <key>を</key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+        </row>      
+        <row>
+            <key command="CAPS_LOCK"></key>
+            <key></key>
+            <key command="SWITCH_LAYOUT" number="1"></key>
+            <key command="SWITCH_LAYOUT" number="2"></key>
+            <key command="SWITCH_LAYOUT" number="3"></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+        </row>        
+        <row>
+            <key></key>
+            <key></key>
+            <key command="SWITCH_LAYOUT" number="0"></key>
+            <key></key>
+            <key command="SWITCH_LAYOUT" number="4"></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+            <key></key>
+        </row>    
     </layout>
 </layouts>

@@ -1,18 +1,31 @@
 package riateche;
 
-import android.util.Log;
 
 public class KeyboardLayout {
 	private final int width, height;
 	private final int arraySize, subArraySize;
 	private KeyboardLayoutItem[][] items;
+	private String label;
+	
+	public String getLabel() {
+	  return label;
+	}
+	
+	public int getWidth() {
+	  return width;
+	}
+	
+	public int getHeight() {
+	  return height;
+	}
 	
 	private int pushPositionX = 0;
 	private int pushPositionY = 0;
 
-	KeyboardLayout(int width, int height) {
+	KeyboardLayout(int width, int height, String label) {
 		this.width = width;
 		this.height = height;
+		this.label = label;
 		arraySize = 4 + (width - 2) * 3;
 		subArraySize = 4 + (height - 2) * 3;
 		items = new KeyboardLayoutItem[arraySize][subArraySize]; 

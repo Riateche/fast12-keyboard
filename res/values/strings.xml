@@ -3,4 +3,5 @@
     <string name="clear_all_warning">Are you sure you want to clear current text field?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="layouts_error">Unexpected error: failed to load layouts.</string>
 </resources>

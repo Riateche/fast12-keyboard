@@ -2,6 +2,7 @@ package riateche;
 
 public class KeyboardLayoutItem {
   private String letter;
+  private int layoutNumber;
   
   enum Command {
     LETTER,
@@ -9,7 +10,10 @@ public class KeyboardLayoutItem {
     HIDE_KEYBOARD, 
     BACKSPACE,
     ENTER,
-    CAPS_LOCK
+    CAPS_LOCK,
+    SWITCH_LAYOUT,
+    SETTINGS,
+    BLANK
   }
   
   private Command command;
@@ -52,6 +56,10 @@ public class KeyboardLayoutItem {
       return "∅";
     case CAPS_LOCK:
       return "⇑";
+    case SWITCH_LAYOUT:
+      return "L";
+    case BLANK:
+      return "";
     }
     return "?";
   }
@@ -67,6 +75,14 @@ public class KeyboardLayoutItem {
 
   public String getLetter(boolean upperCase) {
     return upperCase? letter: letter.toLowerCase();
+  }
+
+  public int getLayoutNumber() {
+    return layoutNumber;
+  }
+
+  public void setLayoutNumber(int layoutNumber) {
+    this.layoutNumber = layoutNumber;
   }
 
 }

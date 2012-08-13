@@ -11,6 +11,7 @@ import java.util.Map;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import riateche.KeyboardLayoutItem.Command;
 import riateche.keyboard.R;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -88,18 +89,32 @@ public class Service extends InputMethodService {
         if (eventType == XmlPullParser.START_TAG) {
           if (parser.getName().equals("layout")) {
             Map<String,String> attrs = getAttributes(parser);
-            if (!attrs.containsKey("width") || !attrs.containsKey("height")) {
+            if (!attrs.containsKey("width") || !attrs.containsKey("height") || !attrs.containsKey("label")) {
               Log.e("KeyboardView", "Layout attributes missing");
               throw new InvalidLayoutXmlException("Layout attributes missing");
             }
             layout = new KeyboardLayout(Integer.parseInt(attrs.get("width")), 
-                Integer.parseInt(attrs.get("height")));
+                Integer.parseInt(attrs.get("height")), attrs.get("label"));
           } else if (parser.getName().equals("key")) {
             Map<String,String> attrs = getAttributes(parser);
             if (attrs.containsKey("command")) {
-              layout.pushItem(new KeyboardLayoutItem(KeyboardLayoutItem.Command.valueOf(attrs.get("command"))));
+              try {
+                Command command = KeyboardLayoutItem.Command.valueOf(attrs.get("command"));
+                KeyboardLayoutItem item = new KeyboardLayoutItem(command);
+                if (item.getCommand() == Command.SWITCH_LAYOUT) {
+                  if (attrs.containsKey("number")) {
+                    item.setLayoutNumber(Integer.parseInt(attrs.get("number")));
+                  } else {
+                    throw new InvalidLayoutXmlException("Layout number missing");                    
+                  }
+                }
+                layout.pushItem(item);
+              } catch (IllegalArgumentException e) {
+                throw new InvalidLayoutXmlException("Invalid command specified: '" + attrs.get("command") + "'");                
+              }
+            } else {
+              inKey = true;
             }
-            inKey = true;
           }
 
           // System.out.println("Start tag "+parser.getName());
@@ -108,7 +123,10 @@ public class Service extends InputMethodService {
             layouts.add(layout);
             layout = null;
           } else if (parser.getName().equals("key")) {
-            inKey = false;
+            if (inKey) {
+              layout.pushItem(new KeyboardLayoutItem(Command.BLANK));
+              inKey = false;
+            }
           }    
           //System.out.println("End tag "+parser.getName());
         } else if(eventType == XmlPullParser.TEXT) {
@@ -118,6 +136,7 @@ public class Service extends InputMethodService {
               throw new InvalidLayoutXmlException("Unexpected 'key' tag");                            
             }
             layout.pushItem(new KeyboardLayoutItem(parser.getText()));
+            inKey = false;
           }
         }
         eventType = parser.next();
@@ -152,9 +171,8 @@ public class Service extends InputMethodService {
       break;
     case BACKSPACE:
       if (shiftPressed) {
-        AlertDialog ad = new AlertDialog.Builder(keyboardView.getContext())
+        showAlertDialog(new AlertDialog.Builder(this)
         .setIcon(android.R.drawable.ic_dialog_alert)
-        .setTitle(R.string.app_name)
         .setMessage(R.string.clear_all_warning)
         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             @Override
@@ -163,14 +181,7 @@ public class Service extends InputMethodService {
               ic.performContextMenuAction(android.R.id.selectAll);
               sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);        
             }
-        }).setNegativeButton(R.string.no, null).create();
-        Window window = ad.getWindow(); 
-        WindowManager.LayoutParams lp = window.getAttributes();
-        lp.token = keyboardView.getWindowToken();
-        lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
-        window.setAttributes(lp);
-        window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        ad.show();
+        }).setNegativeButton(R.string.no, null).create());        
 
       } else {
         sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
@@ -179,7 +190,26 @@ public class Service extends InputMethodService {
     case HIDE_KEYBOARD:
       requestHideSelf(0);
       break;
+    case SWITCH_LAYOUT:
+      int index = item.getLayoutNumber();
+      if (index >= 0 && index < layouts.size()) {
+        currentLayout = layouts.get(index);
+        keyboardView.onLayoutChanged();
+      }
     }
+  }
+  
+  public void showAlertDialog(AlertDialog alertDialog) {
+    alertDialog.setTitle(R.string.app_name);
+    Window window = alertDialog.getWindow(); 
+    WindowManager.LayoutParams lp = window.getAttributes();
+    if (keyboardView != null) {
+      lp.token = keyboardView.getWindowToken();
+    }
+    lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
+    window.setAttributes(lp);
+    window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+    alertDialog.show();
   }
 
   public ArrayList<KeyboardLayout> getLayouts() {
