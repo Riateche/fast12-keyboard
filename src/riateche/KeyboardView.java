@@ -24,7 +24,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 public class KeyboardView extends View implements GestureDetector.OnGestureListener {
-  private static final int singleGestureMaxTime = 200; //milliseconds
+  //private static final int singleGestureMaxTime = 200; //milliseconds
   private final Service service;
   private int preferredButtonSize, minButtonSize;
   private final int padding = 2;
@@ -35,7 +35,7 @@ public class KeyboardView extends View implements GestureDetector.OnGestureListe
   private boolean hasCurrentButton = false;
   private int currentButtonX, currentButtonY;
   private float currentButtonPositionX, currentButtonPositionY;
-  private long gestureStartTime;
+  //private long gestureStartTime;
 
   private int buttonSize = 36;
   private int paddingLeft = 0, paddingTop = 0;
@@ -260,6 +260,7 @@ public class KeyboardView extends View implements GestureDetector.OnGestureListe
     }      
     if (item != null) {
     } */
+    Log.i("", "executeCurrentCommand: " + repeatCandidate);
     if (repeatCandidate != null) {
       if (repeatCandidate.getCommand() == Command.CAPS_LOCK) {
         capsEnabled = !capsEnabled;
@@ -273,12 +274,16 @@ public class KeyboardView extends View implements GestureDetector.OnGestureListe
   public boolean onTouchEvent(MotionEvent event) {
     boolean r = gd.onTouchEvent(event);
     if (!r && event.getAction() == MotionEvent.ACTION_UP) {
+      /*if (!hasCandidateButton && !shiftPressed && System.nanoTime() - gestureStartTime > singleGestureMaxTime * 1e6) {
+        repeatCandidate = null; 
+      }*/
       executeCurrentCommand();      
       hasCurrentButton = false;
       hasCandidateButton = false;
       shiftPressed = false;
       hasShiftCandidate = false;
       repeatCounter = -1;
+      repeatCandidate = null;
       invalidate();
       return true;
     }
@@ -306,7 +311,9 @@ public class KeyboardView extends View implements GestureDetector.OnGestureListe
             currentButtonY = j;
             currentButtonPositionX = rect.left;
             currentButtonPositionY = rect.top;
-            gestureStartTime = System.nanoTime();
+            //gestureStartTime = System.nanoTime();            
+            repeatCandidate = service.getCurrentLayout().getItemForButton(currentButtonX, currentButtonY, 1, 1);
+            repeatCounter = repeatDelay;
             invalidate();
             return true;                            
           }                       
@@ -349,6 +356,7 @@ public class KeyboardView extends View implements GestureDetector.OnGestureListe
       shiftPressed = false;
       hasCandidateButton = false;
       hasShiftCandidate = false;
+      repeatCandidate = null;
     } else {
       shiftPressed = false;
       hasCandidateButton = true;
