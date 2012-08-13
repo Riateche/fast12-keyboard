@@ -1,6 +1,7 @@
 package riateche;
 
 
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,7 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-public class KeyboardView extends View {
+public class KeyboardView extends View implements GestureDetector.OnGestureListener {
   private static final int singleGestureMaxTime = 200; //milliseconds
   private final Service service;
   private int preferredButtonSize, minButtonSize;
@@ -47,8 +48,10 @@ public class KeyboardView extends View {
 
   DisplayMetrics displayMetrics = new DisplayMetrics();
   
-  //private Timer timer = new Timer(false);
-  
+  private Timer timer = new Timer(false);
+  private final int repeatDelay = 20;
+  private int repeatCounter = -1;
+  private KeyboardLayoutItem repeatCandidate = null;
   
   private boolean hasCandidateButton = false;
   private int candidateButtonX, candidateButtonY;
@@ -72,7 +75,9 @@ public class KeyboardView extends View {
     return new Rect(left, top, left + buttonSize, top + buttonSize);   
   }
 
-  
+  private boolean isCandidateDiagonal(int buttonX, int buttonY) {
+    return (currentButtonX - buttonX + currentButtonY - buttonY) % 2 == 0;
+  }
 
   public KeyboardView(Service service) {
     super(service);
@@ -96,118 +101,25 @@ public class KeyboardView extends View {
     paintBackground.setStyle(Style.FILL); 
     paintText.setTextAlign(Align.CENTER);
     
-    /*
+    
     timer.schedule(new TimerTask() {
       
       @Override
       public void run() {
-        if (shiftPressSuggested) {
-          shiftPressSuggestedTime++;
-          if (shiftPressSuggestedTime > 6) {
-            shiftPressSuggested = false;
-            shiftPressed = true;
-            postInvalidate();
-          }
+        if (repeatCounter > 0) {
+          repeatCounter--;
+        } else if (repeatCounter == 0) {
+          post(new Runnable() {
+            public void run() {
+              executeCurrentCommand();
+            }
+          });          
         }
       }
-    },  new Date(), 50);*/
+    },  new Date(), 50);
     //Typeface typeface = Typeface.createFromAsset(service.getAssets(), "font2.ttf"); 
     //paintText.setTypeface(typeface);
-    gd = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
-      @Override
-      public boolean onDown (MotionEvent e) {
-        Log.i("", "ondown!");
-        if (!hasCurrentButton) {
-          for(int i = 0; i < buttonsCount.x; i++) {
-            for(int j = 0; j < buttonsCount.y; j++) {
-              Rect rect = getButtonRect(i, j);
-              if (rect.contains((int) e.getX(), (int) e.getY())) {
-                hasCurrentButton = true;
-                currentButtonX = i;
-                currentButtonY = j;
-                currentButtonPositionX = rect.left;
-                currentButtonPositionY = rect.top;
-                gestureStartTime = System.nanoTime();
-                invalidate();
-                //bringToFront(); //?
-                return true;                            
-              }                       
-            }
-          }
-        }
-        return false;
-      }
-
-      
-      private boolean isCandidateDiagonal(int buttonX, int buttonY) {
-        return (currentButtonX - buttonX + currentButtonY - buttonY) % 2 == 0;
-      }
-
-
-      @Override
-      public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        if (hasCurrentButton) {
-          currentButtonPositionX -= distanceX; 
-          currentButtonPositionY -= distanceY; 
-          double minDistanse = buttonSize * 100;
-          Rect currentButtonDefault = getButtonRect(currentButtonX, currentButtonY);
-          double selfDistanse = Math.pow(currentButtonDefault.left - currentButtonPositionX, 2) +
-              Math.pow(currentButtonDefault.top - currentButtonPositionY, 2);
-          if (Math.sqrt(selfDistanse) < buttonSize * 0.4) {
-            hasCandidateButton = false;
-            shiftPressed = hasShiftCandidate;
-          } else if (Math.sqrt(selfDistanse) > buttonSize * 2) {
-            shiftPressed = false;
-            hasCandidateButton = false;
-            hasShiftCandidate = false;
-          } else {
-            shiftPressed = false;
-            hasCandidateButton = true;
-            for(int i = currentButtonX - 1; i <= currentButtonX + 1; i++) {                     
-              for(int j = currentButtonY - 1; j <= currentButtonY + 1; j++) {
-                if (i < 0 || j < 0) continue;
-                if (i >= buttonsCount.x || j >= buttonsCount.y) continue;
-                if (i == currentButtonX && j == currentButtonY) continue;
-                Rect rect = getButtonRect(i, j);
-                double distanse = Math.pow(rect.left - currentButtonPositionX, 2) +
-                    Math.pow(rect.top - currentButtonPositionY, 2);
-                //Log.i("onScroll", "distance = " + distanse);
-                if (distanse < minDistanse) {
-                  minDistanse = distanse;
-                  candidateButtonX = i;
-                  candidateButtonY = j;
-                }
-
-              }
-            }
-            
-            boolean wasDiagonal = hasShiftCandidate && isCandidateDiagonal(shiftCandidateX, shiftCandidateY);
-            boolean newDiagonal = isCandidateDiagonal(candidateButtonX, candidateButtonY);
-            if (!wasDiagonal || newDiagonal) {
-              shiftCandidateX = candidateButtonX;
-              shiftCandidateY = candidateButtonY;
-            }
-            hasShiftCandidate = true;
-
-            
-            
-            /*double shiftSensitivity = (candidateButtonX - currentButtonX + 
-                candidateButtonY - currentButtonY) % 2 == 0? 1.4 : 1;
-            boolean shouldPressShift = Math.sqrt(selfDistanse) > 1.2 * shiftSensitivity * buttonSize;
-            if (shouldPressShift && !shiftPressSuggested && !shiftPressed) {
-              shiftPressSuggested = true;
-              shiftPressSuggestedTime = 0;
-            }
-            if (!shouldPressShift && (shiftPressSuggested || shiftPressed)) {
-              shiftPressed = false;
-              shiftPressSuggested = false;
-            }*/
-          }                   
-          invalidate();
-        }
-        return true;
-      } 
-    });
+    gd = new GestureDetector(getContext(), this);
   }
 
 
@@ -334,32 +246,39 @@ public class KeyboardView extends View {
     
     invalidate();    
   }
+  
+  private void executeCurrentCommand() {
+    /*KeyboardLayoutItem item = null;
+    if (hasCandidateButton) {
+      item = getItemForCandidate(candidateButtonX, candidateButtonY);
+    } else if (shiftPressed) {
+      item = getItemForCandidate(shiftCandidateX, shiftCandidateY);        
+    } else {
+      if (System.nanoTime() - gestureStartTime < singleGestureMaxTime * 1e6) {
+        item = service.getCurrentLayout().getItemForButton(currentButtonX, currentButtonY, 1, 1);          
+      }
+    }      
+    if (item != null) {
+    } */
+    if (repeatCandidate != null) {
+      if (repeatCandidate.getCommand() == Command.CAPS_LOCK) {
+        capsEnabled = !capsEnabled;
+      } else {
+        service.executeCommand(repeatCandidate, capsEnabled, shiftPressed);
+      }      
+    }
+  }
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
     boolean r = gd.onTouchEvent(event);
     if (!r && event.getAction() == MotionEvent.ACTION_UP) {
-      KeyboardLayoutItem item = null;
-      if (hasCandidateButton) {
-        item = getItemForCandidate(candidateButtonX, candidateButtonY);
-      } else if (shiftPressed) {
-        item = getItemForCandidate(shiftCandidateX, shiftCandidateY);        
-      } else {
-        if (System.nanoTime() - gestureStartTime < singleGestureMaxTime * 1e6) {
-          item = service.getCurrentLayout().getItemForButton(currentButtonX, currentButtonY, 1, 1);          
-        }
-      }      
-      if (item != null) {
-        if (item.getCommand() == Command.CAPS_LOCK) {
-          capsEnabled = !capsEnabled;
-        } else {
-          service.executeCommand(item, capsEnabled, shiftPressed);
-        }
-      }             
+      executeCurrentCommand();      
       hasCurrentButton = false;
       hasCandidateButton = false;
       shiftPressed = false;
       hasShiftCandidate = false;
+      repeatCounter = -1;
       invalidate();
       return true;
     }
@@ -371,6 +290,116 @@ public class KeyboardView extends View {
     Log.i("", "buttonsCount=" + buttonsCount);
     invalidate();
     requestLayout();
+  }
+
+
+  @Override
+  public boolean onDown(MotionEvent e) {
+    Log.i("", "ondown!");
+    if (!hasCurrentButton) {
+      for(int i = 0; i < buttonsCount.x; i++) {
+        for(int j = 0; j < buttonsCount.y; j++) {
+          Rect rect = getButtonRect(i, j);
+          if (rect.contains((int) e.getX(), (int) e.getY())) {
+            hasCurrentButton = true;
+            currentButtonX = i;
+            currentButtonY = j;
+            currentButtonPositionX = rect.left;
+            currentButtonPositionY = rect.top;
+            gestureStartTime = System.nanoTime();
+            invalidate();
+            return true;                            
+          }                       
+        }
+      }
+    }
+    return false;
+  }
+
+
+  @Override
+  public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
+      float arg3) {
+    return false;
+  }
+
+
+  @Override
+  public void onLongPress(MotionEvent arg0) { }
+
+
+  @Override
+  public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float distanceX,
+      float distanceY) {
+    if (!hasCurrentButton) return false;
+    currentButtonPositionX -= distanceX; 
+    currentButtonPositionY -= distanceY; 
+    double minDistanse = buttonSize * 100;
+    Rect currentButtonDefault = getButtonRect(currentButtonX, currentButtonY);
+    double selfDistanse = Math.pow(currentButtonDefault.left - currentButtonPositionX, 2) +
+        Math.pow(currentButtonDefault.top - currentButtonPositionY, 2);
+    KeyboardLayoutItem oldRepeatCandidate = repeatCandidate;
+    if (Math.sqrt(selfDistanse) < buttonSize * 0.4) {
+      hasCandidateButton = false;
+      shiftPressed = hasShiftCandidate;
+      repeatCandidate = hasShiftCandidate?
+          getItemForCandidate(shiftCandidateX, shiftCandidateY): 
+          service.getCurrentLayout().getItemForButton(currentButtonX, currentButtonY, 1, 1);
+    } else if (Math.sqrt(selfDistanse) > buttonSize * 2) {
+      shiftPressed = false;
+      hasCandidateButton = false;
+      hasShiftCandidate = false;
+    } else {
+      shiftPressed = false;
+      hasCandidateButton = true;
+      for(int i = currentButtonX - 1; i <= currentButtonX + 1; i++) {                     
+        for(int j = currentButtonY - 1; j <= currentButtonY + 1; j++) {
+          if (i < 0 || j < 0) continue;
+          if (i >= buttonsCount.x || j >= buttonsCount.y) continue;
+          if (i == currentButtonX && j == currentButtonY) continue;
+          Rect rect = getButtonRect(i, j);
+          double distanse = Math.pow(rect.left - currentButtonPositionX, 2) +
+              Math.pow(rect.top - currentButtonPositionY, 2);
+          //Log.i("onScroll", "distance = " + distanse);
+          if (distanse < minDistanse) {
+            minDistanse = distanse;
+            candidateButtonX = i;
+            candidateButtonY = j;
+          }
+
+        }
+      }
+      repeatCandidate = getItemForCandidate(candidateButtonX, candidateButtonY);
+      
+      boolean wasDiagonal = hasShiftCandidate && isCandidateDiagonal(shiftCandidateX, shiftCandidateY);
+      boolean newDiagonal = isCandidateDiagonal(candidateButtonX, candidateButtonY);
+      if (!wasDiagonal || newDiagonal) {
+        shiftCandidateX = candidateButtonX;
+        shiftCandidateY = candidateButtonY;
+      }
+      hasShiftCandidate = true;
+
+    }
+    invalidate();
+    if (oldRepeatCandidate != repeatCandidate) {
+      if (repeatCandidate == null) {
+        repeatCounter = -1;
+      } else {
+        repeatCounter = repeatDelay;
+      }
+    }
+    return true;
+  }
+
+
+  @Override
+  public void onShowPress(MotionEvent arg0) {
+  }
+
+
+  @Override
+  public boolean onSingleTapUp(MotionEvent arg0) {
+    return false;
   }
     
 }
