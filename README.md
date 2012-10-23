@@ -1,8 +1,7 @@
 fast12-keyboard
 ===============
 
-[eng][https://github.com/Riateche/fast12-keyboard/blob/master/README.md] | [rus][https://github.com/Riateche/fast12-keyboard/blob/master/README.ru.md]
-
+[eng](https://github.com/Riateche/fast12-keyboard/blob/master/README.md) | [rus](https://github.com/Riateche/fast12-keyboard/blob/master/README.ru.md)
 
 Experimental keyboard for fast input on Android with 12 big buttons.
 

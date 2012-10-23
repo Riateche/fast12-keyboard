@@ -1,7 +1,7 @@
 fast12-keyboard
 ===============
 
-[eng][https://github.com/Riateche/fast12-keyboard/blob/master/README.md] | [rus][https://github.com/Riateche/fast12-keyboard/blob/master/README.ru.md]
+[eng](https://github.com/Riateche/fast12-keyboard/blob/master/README.md) | [rus](https://github.com/Riateche/fast12-keyboard/blob/master/README.ru.md)
 
 Экспериментальная клавиатура для быстрого ввода для Android.
 
