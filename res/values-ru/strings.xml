@@ -3,4 +3,5 @@
     <string name="clear_all_warning">Вы уверены, что хотите очистить текущее поле?</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
+    <string name="layouts_error">Ошибка: не удалось загрузить раскладки.</string>
 </resources>
